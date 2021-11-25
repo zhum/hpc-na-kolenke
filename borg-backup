@@ -155,11 +155,7 @@ if [ "x$DEBUG" != xyes ]; then
 fi
 backup_exit=$?
 
-# cat "${TMPF}"
-
-if [ "x$DEBUG" = xyes ]; then
-    yq '.archive.stats * .cache.stats * {"duration": .archive.duration} * {"name": .archive.name}' < "${TMPF}" | grep -E -v '{|}' | tee "$OUTFILE"
-fi
+yq '.archive.stats * .cache.stats * {"duration": .archive.duration} * {"name": .archive.name}' < "${TMPF}" | grep -E -v '{|}' | tee "$OUTFILE"
 
 xinfo "Pruning repository"
 
@@ -263,8 +259,6 @@ END
         echo "curl -d '$POST' -X POST $INFLUX_ADDR_STATS"
     fi
 fi
-
-cleanup
 
 exit ${global_exit}
 
