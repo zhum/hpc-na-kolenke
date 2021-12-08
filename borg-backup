@@ -33,6 +33,7 @@
 require(){ hash "$@" || exit 127; }
 
 require 'yq'
+require 'jq'
 require 'borg'
 require 'curl'
 require 'grep'
@@ -67,6 +68,14 @@ function die {
 function err() {
   printf '%s\n' "[$(date +'%Y-%m-%dT%H:%M:%S%z')]: $*" >&2
 }
+
+# Print all arguments
+function print_args() {
+    while [ "x$1" != x ]; do
+        print "--> %s" "$1"
+        shift
+    done
+}
 #!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 # recommended
@@ -84,7 +93,9 @@ HOSTNAME=$(hostname -s)
 if [ "x$DEBUG" = xyes ]; then
     TMPF=/tmp/borg-debug
     OUTFILE=/tmp/borg-debug-out
+    CURL="print_args curl -d"
 fi
+CURL="curl -q -d"
 
 # some helpers and error handling:
 xinfo()
@@ -151,7 +162,7 @@ if [ "x$DEBUG" != xyes ]; then
                           \
     ::'{hostname}-{now}'  \
     "${DIRS[@]}"          \
-    > "${TMPF}"
+    &> "${TMPF}"
 fi
 backup_exit=$?
 
@@ -170,7 +181,7 @@ if [ "x$DEBUG" != xyes ]; then
     --show-rc               \
     --list                  \
     "${KEEPS[@]}"           \
-    > "${TMPF}"
+    &> "${TMPF}"
     # --json                  \
 fi
 
@@ -231,13 +242,8 @@ done < "${OUTFILE}"
 
 # send to VM
 if [ "x${VICTORIA_ADDR_STATS}" != x ]; then
-    if [ "x$DEBUG" != xyes ]; then
-        curl -d "backup,host=$HOSTNAME,kind=borg status=$global_exit,compressed_size=$cs,deduplicated_size=$ds,nfiles=$nf,original_size=$os,total_chunks=$tc,duration=$dr,kept=$kp,pruned=$pr" \
+    $CURL "backup,host=$HOSTNAME,kind=borg status=$global_exit,compressed_size=$cs,deduplicated_size=$ds,nfiles=$nf,original_size=$os,total_chunks=$tc,duration=$dr,kept=$kp,pruned=$pr" \
         -X POST "$VICTORIA_ADDR_STATS"
-    else
-        echo "curl -d \"backup,host=$HOSTNAME,kind=borg status=$global_exit,compressed_size=$cs,deduplicated_size=$ds,nfiles=$nf,original_size=$os,total_chunks=$tc,duration=$dr,kept=$kp,pruned=$pr\" \
-        -X POST $VICTORIA_ADDR_STATS"
-    fi
 fi
 
 # send to influx
@@ -253,11 +259,7 @@ backup,host=$HOSTNAME,kind=borg,stat=exit duration=$dr
 backup,host=$HOSTNAME,kind=borg,stat=exit kept=$kp
 backup,host=$HOSTNAME,kind=borg,stat=exit pruned=$pr
 END
-    if [ "x$DEBUG" != xyes ]; then
-        curl -d "$POST" -X POST "$INFLUX_ADDR_STATS"
-    else
-        echo "curl -d '$POST' -X POST $INFLUX_ADDR_STATS"
-    fi
+    $CURL "$POST" -X POST "$INFLUX_ADDR_STATS"
 fi
 
 exit ${global_exit}
