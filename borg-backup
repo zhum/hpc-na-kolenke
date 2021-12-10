@@ -95,7 +95,7 @@ if [ "x$DEBUG" = xyes ]; then
     OUTFILE=/tmp/borg-debug-out
     CURL="print_args curl -d"
 fi
-CURL="curl -q -d"
+CURL="curl -s -d"
 
 # some helpers and error handling:
 xinfo()
@@ -166,7 +166,8 @@ if [ "x$DEBUG" != xyes ]; then
 fi
 backup_exit=$?
 
-yq '.archive.stats * .cache.stats * {"duration": .archive.duration} * {"name": .archive.name}' < "${TMPF}" | grep -E -v '{|}' | tee "$OUTFILE"
+#yq '.archive.stats * .cache.stats * {"duration": .archive.duration} * {"name": .archive.name}' < "${TMPF}" | grep -E -v '{|}' | tee "$OUTFILE"
+yq '.archive.stats * .cache.stats * {"duration": .archive.duration} * {"name": .archive.name}' < "${TMPF}" | grep -E -v '{|}' > "$OUTFILE"
 
 xinfo "Pruning repository"
 
