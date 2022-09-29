@@ -4,7 +4,9 @@
 # Optionally send results to InfluxDB and/or VictoriaMetrics
 # 
 # check it with https://www.shellcheck.net/
-
+#
+# Actual (I hope) repo is here: https://github.com/zhum/hpc-na-kolenke/
+#
 ###########################################################
 #
 #  Prerequisites:
