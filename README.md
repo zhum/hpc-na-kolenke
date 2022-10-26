@@ -3,8 +3,8 @@ Some useful scripts for HPC and other installations, I use in production for dif
 
 ## borg-backup
 
-Wrapper over borg (borgnackup) to automate regular backups. Uses config
-files, so you can use one script for many computers and baclup different sets
+Wrapper over borg (borgbackup) to automate regular backups. It uses config
+file, so you can use one script for many computers and backup different sets
 of dirs, use different retention policies, even use different backup schemes on
 one computer for different dirs.
 
